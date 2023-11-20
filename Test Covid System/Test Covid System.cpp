@@ -3,7 +3,10 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cctype>
+#include <algorithm>
 
+// User class definition
 class User {
 public:
     std::string username;
@@ -19,6 +22,7 @@ public:
 
     User() : isAdmin(false) {}
 
+    // Parameterized constructor to initialize user details
     User(const std::string& uname, const std::string& pwd, bool admin,
         const std::string& n, const std::string& dob, const std::string& vacc,
         const std::string& addr, const std::string& mobile, const std::string& testResults)
@@ -26,6 +30,7 @@ public:
         name(n), dateOfBirth(dob), vaccinationStatus(vacc),
         address(addr), mobileNumber(mobile), covidTestResults(testResults) {}
 
+    // Function to serialize user data to a string
     std::string serialize() const {
         return username + " " + password + " " + (isAdmin ? "1" : "0") +
             " " + name + " " + dateOfBirth + " " + vaccinationStatus +
@@ -33,6 +38,7 @@ public:
     }
 };
 
+// Initializing user and admin functions
 void createUser();
 bool loginUser(User& loggedInUser);
 void viewUserInfo(const User& user, bool displayAll = false);
@@ -48,8 +54,10 @@ void viewTestResults(const User& user);
 void viewDocuments(const User& user);
 void fileReport(const User& user);
 
+// Vector to store user objects
 std::vector<User> users;
 
+// Function to save user details to a file
 void saveUserDetailsToFile(const std::vector<User>& users) {
     std::ofstream userFile("user_details.txt");
 
@@ -64,6 +72,7 @@ void saveUserDetailsToFile(const std::vector<User>& users) {
     }
 }
 
+// Function to retrieve user details from a file
 void loadUserDetailsFromFile() {
     std::ifstream userFile("user_details.txt");
 
@@ -86,12 +95,18 @@ void loadUserDetailsFromFile() {
     }
 }
 
+// Main function
 int main() {
+
+    // Function to load user details from the file on program startup
     loadUserDetailsFromFile();
 
     int choice;
 
+    // Main program loop
     do {
+
+        // Main menu
         std::cout << "1. Create Account\n";
         std::cout << "2. Login\n";
         std::cout << "3. Admin Login\n";
@@ -99,6 +114,7 @@ int main() {
         std::cout << "Enter your choice: ";
         std::cin >> choice;
 
+        // Switch case for user selection
         switch (choice) {
         case 1:
             createUser();
@@ -120,6 +136,7 @@ int main() {
             break;
         }
         case 3: {
+            // Hardcoded admin login
             std::string adminUsername, adminPassword;
             adminUsername = "admin";
             adminPassword = "admin";
@@ -147,18 +164,50 @@ int main() {
         }
     } while (choice != 4);
 
+    // Save user details to file before quitting
     saveUserDetailsToFile(users);
 
     return 0;
 }
+
+// User and admin functions as named
 
 void createUser() {
     User newUser;
     std::cout << "Enter username: ";
     std::cin >> newUser.username;
 
-    std::cout << "Enter password: ";
-    std::cin >> newUser.password;
+    // Get a password that meets the specified criteria
+    do {
+        std::cout << "Enter password (at least 1 capital letter and 1 number): ";
+        std::cin >> newUser.password;
+
+        bool hasCapital = false;
+        bool hasNumber = false;
+
+        // Check each character in the password
+        for (char ch : newUser.password) {
+            if (std::isupper(ch)) {
+                hasCapital = true;
+            }
+            else if (std::isdigit(ch)) {
+                hasNumber = true;
+            }
+
+            // If both conditions are met, break the loop early
+            if (hasCapital && hasNumber) {
+                break;
+            }
+        }
+
+        // If the conditions are not met, prompt the user to enter the password again
+        if (!hasCapital || !hasNumber) {
+            std::cout << "Error: Password must contain at least 1 capital letter and 1 number.\n";
+        }
+
+    } while (!std::any_of(newUser.password.begin(), newUser.password.end(), ::isupper) ||
+        !std::any_of(newUser.password.begin(), newUser.password.end(), ::isdigit));
+
 
     newUser.isAdmin = false;
 
@@ -352,7 +401,6 @@ void changeVaccinationStatus(User& adminUser) {
 
     std::cout << "User not found.\n";
 }
-
 
 void uploadQRCode(User& adminUser) {
     std::string targetUsername;

@@ -15,26 +15,30 @@ public:
 
     std::string name;
     std::string dateOfBirth;
-    std::string vaccinationStatus;
     std::string address;
     std::string mobileNumber;
+    std::string vaccinationStatus;
     std::string covidTestResults;
 
     User() : isAdmin(false) {}
 
     // Parameterized constructor to initialize user details
     User(const std::string& uname, const std::string& pwd, bool admin,
-        const std::string& n, const std::string& dob, const std::string& vacc,
-        const std::string& addr, const std::string& mobile, const std::string& testResults)
+        const std::string& n, const std::string& dob, const std::string& addr, const std::string& mobile, 
+        const std::string& vacc, const std::string& testResults)
         : username(uname), password(pwd), isAdmin(admin),
-        name(n), dateOfBirth(dob), vaccinationStatus(vacc),
-        address(addr), mobileNumber(mobile), covidTestResults(testResults) {}
+        name(n), dateOfBirth(dob), address(addr), mobileNumber(mobile), 
+        vaccinationStatus(vacc), covidTestResults(testResults) {}
 
     // Function to serialize user data to a string
     std::string serialize() const {
-        return username + " " + password + " " + (isAdmin ? "1" : "0") +
-            " " + name + " " + dateOfBirth + " " + vaccinationStatus +
-            " " + address + " " + mobileNumber + " " + covidTestResults;
+        // Replace commas in the full name with underscores
+        std::string sanitizedName = name;
+        std::replace(sanitizedName.begin(), sanitizedName.end(), ',', '_');
+
+        return username + "," + password + "," + (isAdmin ? "1" : "0") +
+            "," + sanitizedName + "," + dateOfBirth + "," + address + "," + mobileNumber +
+            "," + vaccinationStatus + "," + covidTestResults + ",";
     }
 };
 
@@ -59,6 +63,7 @@ std::vector<User> users;
 
 // Function to save user details to a file
 void saveUserDetailsToFile(const std::vector<User>& users) {
+
     std::ofstream userFile("user_details.txt");
 
     if (userFile.is_open()) {
@@ -74,6 +79,7 @@ void saveUserDetailsToFile(const std::vector<User>& users) {
 
 // Function to retrieve user details from a file
 void loadUserDetailsFromFile() {
+
     std::ifstream userFile("user_details.txt");
 
     if (userFile.is_open()) {
@@ -81,11 +87,21 @@ void loadUserDetailsFromFile() {
 
         std::string line;
         while (std::getline(userFile, line)) {
+            // Stringstream to split the line using commas as delimiters 
             std::istringstream iss(line);
-            std::string uname, pwd, isAdminStr, n, dob, vacc, addr, mobile, testResults;
-            iss >> uname >> pwd >> isAdminStr >> n >> dob >> vacc >> addr >> mobile >> testResults;
+            std::string uname, pwd, isAdminStr, n, dob, addr, mobile, vacc, testResults;
+            std::getline(iss, uname, ',');
+            std::getline(iss, pwd, ',');
+            std::getline(iss, isAdminStr, ',');
+            std::getline(iss, n, ',');
+            std::getline(iss, dob, ',');
+            std::getline(iss, addr, ',');
+            std::getline(iss, mobile, ',');
+            std::getline(iss, vacc, ',');
+            std::getline(iss, testResults, ',');
+
             bool isAdmin = (isAdminStr == "1");
-            users.emplace_back(uname, pwd, isAdmin, n, dob, vacc, addr, mobile, testResults);
+            users.emplace_back(uname, pwd, isAdmin, n, dob, addr, mobile, vacc, testResults);
         }
 
         userFile.close();
@@ -170,14 +186,15 @@ int main() {
     return 0;
 }
 
-// User and admin functions as named
 
+// Create user account function
 void createUser() {
+
     User newUser;
     std::cout << "Enter username: ";
     std::cin >> newUser.username;
 
-    // Get a password that meets the specified criteria
+    // Get a password that meets conditions
     do {
         std::cout << "Enter password (at least 1 capital letter and 1 number): ";
         std::cin >> newUser.password;
@@ -185,7 +202,7 @@ void createUser() {
         bool hasCapital = false;
         bool hasNumber = false;
 
-        // Check each character in the password
+        // Check each character in password
         for (char ch : newUser.password) {
             if (std::isupper(ch)) {
                 hasCapital = true;
@@ -200,7 +217,7 @@ void createUser() {
             }
         }
 
-        // If the conditions are not met, prompt the user to enter the password again
+        // Error message to prompt user to enter the password again
         if (!hasCapital || !hasNumber) {
             std::cout << "Error: Password must contain at least 1 capital letter and 1 number.\n";
         }
@@ -218,15 +235,15 @@ void createUser() {
     std::cout << "Enter date of birth (DD/MM/YYYY): ";
     std::cin >> newUser.dateOfBirth;
 
-    std::cout << "Enter vaccination status (E.g. Vaccinated, Unvaccinated, or Partial): ";
-    std::cin >> newUser.vaccinationStatus;
-
     std::cout << "Enter email address: ";
     std::cin.ignore();
     std::getline(std::cin, newUser.address);
 
     std::cout << "Enter mobile number: ";
     std::cin >> newUser.mobileNumber;
+
+    std::cout << "Enter vaccination status (E.g. Vaccinated, Unvaccinated, or Partial): ";
+    std::cin >> newUser.vaccinationStatus;
 
     std::cout << "Enter COVID test results (E.g. Positive, or Negative): ";
     std::cin >> newUser.covidTestResults;
@@ -236,7 +253,9 @@ void createUser() {
     std::cout << "Account created successfully.\n";
 }
 
+// User login function
 bool loginUser(User& loggedInUser) {
+
     std::string username, password;
     std::cout << "Enter username: ";
     std::cin >> username;
@@ -254,20 +273,9 @@ bool loginUser(User& loggedInUser) {
     return false;
 }
 
-void viewUserInfo(const User& user, bool displayAll) {
-    if (displayAll) {
-        std::cout << "Username: " << user.username << "\n";
-        std::cout << "Admin: " << (user.isAdmin ? "Yes" : "No") << "\n";
-        std::cout << "Full Name: " << user.name << "\n";
-        std::cout << "Date of Birth (DD/MM/YYYY): " << user.dateOfBirth << "\n";
-        std::cout << "Vaccination Status (E.g. Vaccinated, Unvaccinated, or Partial): " << user.vaccinationStatus << "\n";
-        std::cout << "Email Address: " << user.address << "\n";
-        std::cout << "Mobile Number: " << user.mobileNumber << "\n";
-        std::cout << "COVID Test Results (E.g. Positive, or Negative): " << user.covidTestResults << "\n";
-    }
-}
-
+// User menu function
 void userMenu(User& user) {
+
     int userChoice;
     bool hasLoggedIn = false;
 
@@ -305,8 +313,70 @@ void userMenu(User& user) {
     } while (userChoice != 4);
 }
 
+// Function to display a logged-in users information
+void viewUserInfo(const User& user, bool displayAll) {
+    if (displayAll) {
+
+        std::cout << "Username: " << user.username << "\n";
+        std::cout << "Admin: " << (user.isAdmin ? "Yes" : "No") << "\n";
+        std::cout << "Full Name: " << user.name << "\n";
+        std::cout << "Date of Birth (DD/MM/YYYY): " << user.dateOfBirth << "\n";
+        std::cout << "Email Address: " << user.address << "\n";
+        std::cout << "Mobile Number: " << user.mobileNumber << "\n";
+        std::cout << "Vaccination Status (E.g. Vaccinated, Unvaccinated, or Partial): " << user.vaccinationStatus << "\n";
+        std::cout << "COVID Test Results (E.g. Positive, or Negative): " << user.covidTestResults << "\n";
+    }
+}
+
+// Function for users to view their documents
+void viewDocuments(const User& user) {
+
+    std::cout << "Viewing documents for user: " << user.username << "\n";
+    std::cout << "Full Name: " << user.name << "\n";
+    std::cout << "Date of Birth: " << user.dateOfBirth << "\n";
+    std::cout << "Email Address: " << user.address << "\n";
+    std::cout << "Mobile Number: " << user.mobileNumber << "\n";
+
+}
+
+// Function for users to view their test results
+void viewTestResults(const User& user) {
+
+    std::cout << "Viewing test results for user: " << user.username << "\n";
+    std::cout << "Vaccination Status: " << user.vaccinationStatus << "\n";
+    std::cout << "COVID Test Results: " << user.covidTestResults << "\n";
+
+}
+
+// Function to allow report filing for users
+void fileReport(const User& user) {
+
+    std::string report;
+
+    std::cout << "Please type what went wrong with the application:\n";
+    std::cin.ignore();
+    std::getline(std::cin, report);
+
+    std::ofstream reportFile("error_reports.txt", std::ios::app);
+
+    if (reportFile.is_open()) {
+        reportFile << "User: " << user.username << "\n";
+        reportFile << "Report:\n" << report << "\n";
+        reportFile << "---------------------------------\n";
+        reportFile.close();
+
+        std::cout << "Report filed successfully. Thank you for your feedback!\n";
+    }
+    else {
+        std::cerr << "Error: Unable to open the report file.\n";
+    }
+}
+
+// Admin menu function
 void adminFunctions(User& adminUser) {
+
     int adminChoice;
+
     do {
         std::cout << "\nAdmin Menu:\n";
         std::cout << "1. Edit User Documents\n";
@@ -344,7 +414,9 @@ void adminFunctions(User& adminUser) {
     } while (adminChoice != 5);
 }
 
+// Function for admin to edit a users documents
 void editUserDocuments(User& adminUser) {
+
     std::string targetUsername;
     std::cout << "Enter the username of the user whose documents you want to edit: ";
     std::cin >> targetUsername;
@@ -382,7 +454,9 @@ void editUserDocuments(User& adminUser) {
     std::cout << "User not found.\n";
 }
 
+// Function for admins to change a users vaccination status
 void changeVaccinationStatus(User& adminUser) {
+
     std::string targetUsername;
     std::cout << "Enter the username of the user whose vaccination status you want to change: ";
     std::cin >> targetUsername;
@@ -402,7 +476,9 @@ void changeVaccinationStatus(User& adminUser) {
     std::cout << "User not found.\n";
 }
 
+// Function for admins to upload QR code for user
 void uploadQRCode(User& adminUser) {
+
     std::string targetUsername;
     std::cout << "Enter the username of the user to upload the QR code: ";
     std::cin >> targetUsername;
@@ -418,23 +494,9 @@ void uploadQRCode(User& adminUser) {
     std::cout << "User not found.\n";
 }
 
-void viewDocuments(const User& user) {
-        std::cout << "Viewing documents for user: " << user.username << "\n";
-        std::cout << "Email Address: " << user.address << "\n";
-        std::cout << "Mobile Number: " << user.mobileNumber << "\n";
-        std::cout << "Full Name: " << user.name << "\n";
-        std::cout << "Date of Birth: " << user.dateOfBirth << "\n";
-
-}
-
-void viewTestResults(const User& user) {
-    std::cout << "Viewing test results for user: " << user.username << "\n";
-    std::cout << "Vaccination Status: " << user.vaccinationStatus << "\n";
-    std::cout << "COVID Test Results: " << user.covidTestResults << "\n";
-
-}
-
+// Function for admins to view user reports
 void viewUserReports(const User& adminUser) {
+
     std::ifstream reportFile("error_reports.txt");
     std::string line;
 
@@ -444,28 +506,6 @@ void viewUserReports(const User& adminUser) {
             std::cout << line << '\n';
         }
         reportFile.close();
-    }
-    else {
-        std::cerr << "Error: Unable to open the report file.\n";
-    }
-}
-
-void fileReport(const User& user) {
-    std::string report;
-
-    std::cout << "Please type what went wrong with the application:\n";
-    std::cin.ignore();
-    std::getline(std::cin, report);
-
-    std::ofstream reportFile("error_reports.txt", std::ios::app);
-
-    if (reportFile.is_open()) {
-        reportFile << "User: " << user.username << "\n";
-        reportFile << "Report:\n" << report << "\n";
-        reportFile << "---------------------------------\n";
-        reportFile.close();
-
-        std::cout << "Report filed successfully. Thank you for your feedback!\n";
     }
     else {
         std::cerr << "Error: Unable to open the report file.\n";

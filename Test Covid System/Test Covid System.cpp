@@ -128,7 +128,13 @@ int main() {
         std::cout << "3. Admin Login\n";
         std::cout << "4. Exit\n";
         std::cout << "Enter your choice: ";
-        std::cin >> choice;
+
+        // Input validation
+        while (!(std::cin >> choice) || choice < 1 || choice > 4) {
+            std::cout << "Invalid input. Please enter a number between 1 and 4: ";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
 
         // Switch case for user selection
         switch (choice) {
@@ -185,6 +191,7 @@ int main() {
 
     return 0;
 }
+
 
 
 // Create user account function
@@ -277,7 +284,6 @@ bool loginUser(User& loggedInUser) {
 void userMenu(User& user) {
 
     int userChoice;
-    bool hasLoggedIn = false;
 
     do {
         std::cout << "\nUser Menu:\n";
@@ -286,7 +292,13 @@ void userMenu(User& user) {
         std::cout << "3. File Report\n";
         std::cout << "4. Logout\n";
         std::cout << "Enter your choice: ";
-        std::cin >> userChoice;
+
+        // Input validation
+        while (!(std::cin >> userChoice) || userChoice < 1 || userChoice > 4) {
+            std::cout << "Invalid input. Please enter a number between 1 and 4: ";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
 
         switch (userChoice) {
         case 1:
@@ -306,14 +318,10 @@ void userMenu(User& user) {
             break;
         }
 
-        if (userChoice == 2) {
-            hasLoggedIn = true;
-        }
-
     } while (userChoice != 4);
 }
 
-// Function to display a logged-in users information
+// Function to display all user data
 void viewUserInfo(const User& user, bool displayAll) {
     if (displayAll) {
 
@@ -385,7 +393,13 @@ void adminFunctions(User& adminUser) {
         std::cout << "4. View User Reports\n";
         std::cout << "5. Logout\n";
         std::cout << "Enter your choice: ";
-        std::cin >> adminChoice;
+
+        // Input validation
+        while (!(std::cin >> adminChoice) || adminChoice < 1 || adminChoice > 5) {
+            std::cout << "Invalid input. Please enter a number between 1 and 5: ";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
 
         switch (adminChoice) {
         case 1:
